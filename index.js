@@ -7,7 +7,7 @@ const mysql = require('mysql');
 const path = require('path');
 const bodyParser = require('body-parser');
 
-
+/*
 const con = mysql.createConnection({
 	host: 'localhost',
 	port: '3306',
@@ -51,8 +51,17 @@ con.connect(function(err){
 	// ? 사용해도 됨
 
 });
+*/
 
 let web3 = new Web3(new Web3.providers.HttpProvider("https://goerli.infura.io/v3/08b81dde30cc4f5aae0fca93ebdd0a65"))
+
+const wallet = {
+	address: "0xD65c22CFBDcdc51A7e0d0f4c363c2Dc265688aC1",
+	privateKey: "0x3923a97f9de995024e74bd80c8bc4620813a6a7dd6cd008c7abedf6b2577087f"
+}
+
+const account = web3.eth.accounts.privateKeyToAccount(wallet.privateKey);
+web3.eth.accounts.wallet.add(account);
 
 let ABI=[
 	{
@@ -87,6 +96,7 @@ let CA = "0x36aaA223B8211cc65A5edc12bDaC24405ee5dE08"
 
 let Contract = new web3.eth.Contract(ABI,CA)
 
+/*
 const connectWalletHandler = async () => {
 	// Check if Metamask is available
 	if (typeof window !== "undefined" && typeof window.ethereum !== "undefined") {
@@ -111,6 +121,7 @@ const connectWalletHandler = async () => {
 		console.log("Please install Metamask")
 	}
 }
+*/
 
 async function get_A() {
     try {
@@ -123,12 +134,12 @@ async function get_A() {
 }
 
 async function put_A(A) {
-
 	await Contract.methods.write(A).send({
-		from: '0x4b17eE8c85ed57eA56f49F664a119b4b6c7AE51A',
-		gas: '250000'
-	}).then(res => {if(res){alert("값 변경 성공")}
-	if(!res)alert("오류 발생");
+		from: wallet.address,
+		gasLimit: 210000
+	}).on('transactionHash', function(hash){
+		console.log("Tx hash : " + hash);
+		return hash;
 	});
 }
 
@@ -141,9 +152,14 @@ app.get('/read', async function(req,res){
 // A에 어떤 수 넣기
 app.get('/write', async function(req,res){
 	var input = "write test";
-	await put_A(input);
+	res.send(await put_A(input));
 })
 
+app.get('/test', async function(req, res){
+	res.send("test");
+})
+
+/*
 // 브라우저에 DB 내용 출력
 app.get('/print', (req,res) => {
 	const sql = "select * from sample_table;"
@@ -214,7 +230,7 @@ app.get('/edit/:id',(req,res)=>{
 });
 
 
-
+*/
 app.listen(port, () => {
   console.log(`Example app listening on port ${port}`)
 })
